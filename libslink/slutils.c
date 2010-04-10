@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified: 2007.169
+ * modified: 2010.075
  ***************************************************************************/
 
 #include <stdlib.h>
@@ -765,7 +765,7 @@ update_stream (SLCD * slconn, SLpacket * slpack)
   
   if ( (seqnum = sl_sequence (slpack)) == -1 )
     {
-      sl_log_r (slconn, 2, 0, "update_stream(): could not determine sequence number\b");
+      sl_log_r (slconn, 2, 0, "update_stream(): could not determine sequence number\n");
       return -1;
     }
   
@@ -888,6 +888,7 @@ sl_newslcd (void)
   slconn->resume         = 1;
   slconn->multistation   = 0;
   slconn->dialup         = 0;
+  slconn->batchmode      = 0;
   slconn->lastpkttime    = 0;
   slconn->terminate      = 0;
   
