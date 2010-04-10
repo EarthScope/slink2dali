@@ -3,7 +3,7 @@
  *
  * SeedLink to DataLink.
  *
- * Connects to a SeedLink server and forward data to a DataLink server.
+ * Connect to a SeedLink server and forward data to a DataLink server.
  *
  * Written by Chad Trabant
  *   IRIS Data Management Center
@@ -30,7 +30,7 @@ static char *getoptval (int argcount, char **argvec, int argopt);
 static void term_handler (int sig);
 static void print_timelogc (const char *msg);
 static void print_timelog (char *msg);
-static void usage (int level);
+static void usage (void);
 
 static short int verbose  = 0;   /* Flag to control general verbosity */
 static int stateint       = 0;   /* Packet interval to save statefile */
@@ -195,29 +195,12 @@ parameter_proc (int argcount, char **argvec)
         }
       else if (strcmp (argvec[optind], "-h") == 0)
         {
-          usage (0);
-          exit (0);
-        }
-      else if (strcmp (argvec[optind], "-H") == 0)
-        {
-          usage (1);
+          usage ();
           exit (0);
         }
       else if (strncmp (argvec[optind], "-v", 2) == 0)
 	{
 	  verbose += strspn (&argvec[optind][1], "v");
-	}
-      else if (strcmp (argvec[optind], "-nd") == 0)
-	{
-	  slconn->netdly = atoi (getoptval(argcount, argvec, optind++));
-	}
-      else if (strcmp (argvec[optind], "-nt") == 0)
-	{
-	  slconn->netto = atoi (getoptval(argcount, argvec, optind++));
-	}
-      else if (strcmp (argvec[optind], "-k") == 0)
-	{
-	  slconn->keepalive = atoi (getoptval(argcount, argvec, optind++));
 	}
       else if (strcmp (argvec[optind], "-l") == 0)
 	{
@@ -268,7 +251,7 @@ parameter_proc (int argcount, char **argvec)
       fprintf (stderr, "Try '-h' for detailed help\n");
       exit (1);
     }
-
+  
   /* Make sure a DataLink server was specified */
   if ( ! dladdress )
     {
@@ -287,6 +270,7 @@ parameter_proc (int argcount, char **argvec)
     }
   
   slconn->sladdr = sladdress;
+  slconn->keepalive = 300;
   
   /* Allocate and initialize DataLink connection description */
   if ( ! (dlconn = dl_newdlcp (dladdress, argvec[0])) )
@@ -310,7 +294,7 @@ parameter_proc (int argcount, char **argvec)
   /* If errors then report the usage message and quit */
   if ( error )
     {
-      usage (0);
+      usage ();
       exit (1);
     }
   
@@ -481,23 +465,18 @@ print_timelog (char *msg)
  * Print the usage message and exit.
  ***************************************************************************/
 static void
-usage (int level)
+usage (void)
 {
   fprintf (stderr, "%s version %s\n\n", PACKAGE, VERSION);
   fprintf (stderr, "Usage: %s [options] [slhost][:][port] [dlhost][:][port]\n\n", PACKAGE);
   fprintf (stderr,
-	   " ## General program options ##\n"
+	   " ## General options ##\n"
 	   " -V              Report program version\n"
 	   " -h              Print this usage message\n"
-           " -H              Print usage message with 'format' details (see -A option)\n"
 	   " -v              Be more verbose, multiple flags can be used\n"
-	   " -nd delay       Network re-connect delay (seconds), default 30\n"
-	   " -nt timeout     Network timeout (seconds), re-establish connection if no\n"
-	   "                   data/keepalives are received in this time, default 600\n"
-	   " -k interval     Send keepalive (heartbeat) packets this often (seconds)\n"
 	   " -x sfile[:int]  Save/restore stream state information to this file\n"
 	   "\n"
-	   " ## Data stream selection ##\n"
+	   " ## SeedLink data stream selection ##\n"
 	   " -s selectors    Selectors for uni/all-station or default for multi-station mode\n"
 	   " -l listfile     Read a stream list from this file for multi-station mode\n"
            " -S streams      Define a stream list for multi-station mode\n"
