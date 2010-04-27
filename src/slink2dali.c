@@ -8,7 +8,7 @@
  * Written by Chad Trabant
  *   IRIS Data Management Center
  *
- * modified 2010.100
+ * modified 2010.116
  ***************************************************************************/
 
 #include <stdio.h>
@@ -48,7 +48,12 @@ main (int argc, char **argv)
   int seqnum;
   int ptype;
   int packetcnt = 0;
-
+  
+  /* The following is dependent on the packet type values in libslink.h */
+  char *type[]  = { "Data", "Detection", "Calibration", "Timing",
+                    "Message", "General", "Request", "Info",
+                    "Info (terminated)", "KeepAlive" };
+  
   /* Signal handling, use POSIX calls with standardized semantics */
   struct sigaction sa;
 
@@ -63,11 +68,11 @@ main (int argc, char **argv)
   sa.sa_handler = SIG_IGN;
   sigaction (SIGHUP, &sa, NULL);
   sigaction (SIGPIPE, &sa, NULL);
-
-  /* Process given parameters (command line and parameter file) */
+  
+  /* Process specified parameters */
   if ( parameter_proc (argc, argv) < 0 )
     {
-      fprintf (stderr, "Parameter processing failed\n");
+      fprintf (stderr, "Argument processing failed\n");
       fprintf (stderr, "Try '-h' for detailed help\n");
       return -1;
     }
@@ -85,12 +90,37 @@ main (int argc, char **argv)
       ptype  = sl_packettype (slpack);
       seqnum = sl_sequence (slpack);
       
-      /* Send data record to the DataLink server */
-      if ( sendrecord ((char *) &slpack->msrecord, SLRECSIZE) )
+      if ( verbose >= 1 )
 	{
-	  fprintf (stderr, "Error connecting to DataLink server\n");
-	  fprintf (stderr, "Packet lost, should be reconnecting\n");
-	  break;
+	  if ( ptype == SLKEEP )
+	    fprintf (stderr, "Keep alive packet received\n");
+	  else
+	    fprintf (stderr, "seq %d, Received %s blockette\n", seqnum, type[ptype]);
+	}
+      
+      /* Send data record to the DataLink server */
+      if ( ptype == SLDATA )
+	{
+	  while ( sendrecord ((char *) &slpack->msrecord, SLRECSIZE) )
+	    {
+	      if ( verbose )
+		fprintf (stderr, "Re-connecting to DataLink server\n");
+	      
+	      /* Re-connect to DataLink server and sleep if error connecting */
+	      if ( dlconn->link != -1 )
+		dl_disconnect (dlconn);
+	      
+	      if ( dl_connect (dlconn) < 0 )
+		{
+		  fprintf (stderr, "Error re-connecting to DataLink server, sleeping 10 seconds\n");
+		  sleep (10);
+		}
+	      
+	      if ( slconn->terminate )
+		break;
+	    }
+	  
+	  packetcnt++;
 	}
       
       /* Save intermediate state files */
@@ -247,7 +277,7 @@ parameter_proc (int argcount, char **argvec)
     {
       fprintf (stderr, "No SeedLink server specified\n\n");
       fprintf (stderr, "%s version %s\n\n", PACKAGE, VERSION); 
-      fprintf (stderr, "Usage: %s [options] [slhost][:][port] [dlhost][:][port]\n\n", PACKAGE);
+      fprintf (stderr, "Usage: %s [options] slhost dlhost\n\n", PACKAGE);
       fprintf (stderr, "Try '-h' for detailed help\n");
       exit (1);
     }
@@ -257,7 +287,7 @@ parameter_proc (int argcount, char **argvec)
     {
       fprintf (stderr, "No DataLink server specified\n\n");
       fprintf (stderr, "%s version %s\n\n", PACKAGE, VERSION); 
-      fprintf (stderr, "Usage: %s [options] [slhost][:][port] [dlhost][:][port]\n\n", PACKAGE);
+      fprintf (stderr, "Usage: %s [options] slhost dlhost\n\n", PACKAGE);
       fprintf (stderr, "Try '-h' for detailed help\n");
       exit (1);
     }
@@ -468,7 +498,7 @@ static void
 usage (void)
 {
   fprintf (stderr, "%s version %s\n\n", PACKAGE, VERSION);
-  fprintf (stderr, "Usage: %s [options] [slhost][:][port] [dlhost][:][port]\n\n", PACKAGE);
+  fprintf (stderr, "Usage: %s [options] slhost dlhost\n\n", PACKAGE);
   fprintf (stderr,
 	   " ## General options ##\n"
 	   " -V              Report program version\n"
@@ -488,9 +518,9 @@ usage (void)
 	   "        example: -tw 2002,08,05,14,00,00:2002,08,05,14,15,00\n"
 	   "        the end time is optional, but the colon must be present\n"
 	   "\n"
-	   " [slhost][:][port] Address of the SeedLink server in host:port format\n"
-	   "                   Default host is 'localhost' and default port is '18000'\n\n"
-	   " [dlhost][:][port] Address of the DataLink server in host:port format\n"
-	   "                   Default host is 'localhost' and default port is '16000'\n\n");
+	   " slhost   Address of the SeedLink server in host:port format\n"
+	   "            Default host is 'localhost' and default port is '18000'\n\n"
+	   " dlhost   Address of the DataLink server in host:port format\n"
+	   "            Default host is 'localhost' and default port is '16000'\n\n");
   
 }  /* End of usage() */
