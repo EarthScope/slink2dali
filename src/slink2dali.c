@@ -8,7 +8,7 @@
  * Written by Chad Trabant
  *   IRIS Data Management Center
  *
- * modified 2010.116
+ * modified 2010.117
  ***************************************************************************/
 
 #include <stdio.h>
@@ -80,7 +80,7 @@ main (int argc, char **argv)
   /* Connect to DataLink server */
   if ( dl_connect (dlconn) < 0 )
     {
-      fprintf (stderr, "Error connecting to DataLink server\n");
+      sl_log (2, 0, "Error connecting to DataLink server\n");
       return -1;
     }
   
@@ -90,12 +90,13 @@ main (int argc, char **argv)
       ptype  = sl_packettype (slpack);
       seqnum = sl_sequence (slpack);
       
-      if ( verbose >= 1 )
+      if ( verbose > 1 )
 	{
 	  if ( ptype == SLKEEP )
-	    fprintf (stderr, "Keep alive packet received\n");
+	    sl_log (2, 0, "Keep alive packet received\n");
 	  else
-	    fprintf (stderr, "seq %d, Received %s blockette\n", seqnum, type[ptype]);
+	    sl_log (2, 0, "Received %s packet, SeedLink sequence %d\n",
+		    type[ptype], seqnum);
 	}
       
       /* Send data record to the DataLink server */
@@ -104,7 +105,7 @@ main (int argc, char **argv)
 	  while ( sendrecord ((char *) &slpack->msrecord, SLRECSIZE) )
 	    {
 	      if ( verbose )
-		fprintf (stderr, "Re-connecting to DataLink server\n");
+		sl_log (2, 0, "Re-connecting to DataLink server\n");
 	      
 	      /* Re-connect to DataLink server and sleep if error connecting */
 	      if ( dlconn->link != -1 )
@@ -112,7 +113,7 @@ main (int argc, char **argv)
 	      
 	      if ( dl_connect (dlconn) < 0 )
 		{
-		  fprintf (stderr, "Error re-connecting to DataLink server, sleeping 10 seconds\n");
+		  sl_log (2, 0, "Error re-connecting to DataLink server, sleeping 10 seconds\n");
 		  sleep (10);
 		}
 	      
@@ -319,7 +320,7 @@ parameter_proc (int argcount, char **argvec)
   setvbuf(stdout, NULL, _IOLBF, 0);
 
   /* Report the program version */
-  sl_log (1, 1, "%s version: %s\n", PACKAGE, VERSION);
+  sl_log (1, 0, "%s version: %s\n", PACKAGE, VERSION);
 
   /* If errors then report the usage message and quit */
   if ( error )
