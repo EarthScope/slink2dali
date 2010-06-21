@@ -1,2 +1,5 @@
+2010.171: 0.2
+	- Add -N option to change network codes in forwarded SEED records.
+
 2010.117: 0.1
 	- Initial version.

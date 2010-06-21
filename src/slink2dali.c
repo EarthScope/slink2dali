@@ -8,7 +8,7 @@
  * Written by Chad Trabant
  *   IRIS Data Management Center
  *
- * modified 2010.117
+ * modified 2010.171
  ***************************************************************************/
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 #include <libmseed.h>
 
 #define PACKAGE   "slink2dali"
-#define VERSION   "0.1"
+#define VERSION   "0.2"
 
 static int  sendrecord (char *record, int reclen);
 static int  parameter_proc (int argcount, char **argvec);
@@ -34,6 +34,7 @@ static void usage (void);
 
 static short int verbose  = 0;   /* Flag to control general verbosity */
 static int stateint       = 0;   /* Packet interval to save statefile */
+static char *netcode      = 0;	 /* Change all SEED newtork codes to netcode */
 static char *statefile    = 0;	 /* State file for saving/restoring stream states */
 static int   writeack     = 0;   /* Flag to control the request for write acks */
 
@@ -166,6 +167,12 @@ sendrecord (char *record, int reclen)
   char streamid[100];
   int rv;
   
+  /* Translate network code if supplied */
+  if ( netcode )
+    {
+      ms_strncpopen (((struct fsdh_s *)record)->network, netcode, 2);
+    }
+  
   /* Parse Mini-SEED header */
   if ( (rv = msr_unpack (record, reclen, &msr, 0, 0)) != MS_NOERROR )
     {
@@ -244,6 +251,10 @@ parameter_proc (int argcount, char **argvec)
       else if (strcmp (argvec[optind], "-S") == 0)
 	{
 	  multiselect = getoptval(argcount, argvec, optind++);
+	}
+      else if (strcmp (argvec[optind], "-N") == 0)
+	{
+	  netcode = getoptval(argcount, argvec, optind++);
 	}
       else if (strcmp (argvec[optind], "-x") == 0)
 	{
@@ -505,6 +516,7 @@ usage (void)
 	   " -V              Report program version\n"
 	   " -h              Print this usage message\n"
 	   " -v              Be more verbose, multiple flags can be used\n"
+	   " -N netcode      Change all SEED network codes to specified code\n"
 	   " -x sfile[:int]  Save/restore stream state information to this file\n"
 	   "\n"
 	   " ## SeedLink data stream selection ##\n"
