@@ -1,3 +1,6 @@
+2010.227. 0.3
+	- Pass all SeedLink packet types to DataLink server.
+
 2010.171: 0.2
 	- Add -N option to change network codes in forwarded SEED records.
 

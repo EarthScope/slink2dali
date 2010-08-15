@@ -8,7 +8,7 @@
  * Written by Chad Trabant
  *   IRIS Data Management Center
  *
- * modified 2010.171
+ * modified 2010.227
  ***************************************************************************/
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 #include <libmseed.h>
 
 #define PACKAGE   "slink2dali"
-#define VERSION   "0.2"
+#define VERSION   "0.3"
 
 static int  sendrecord (char *record, int reclen);
 static int  parameter_proc (int argcount, char **argvec);
@@ -100,30 +100,27 @@ main (int argc, char **argv)
 		    type[ptype], seqnum);
 	}
       
-      /* Send data record to the DataLink server */
-      if ( ptype == SLDATA )
+      /* Send record to the DataLink server */
+      while ( sendrecord ((char *) &slpack->msrecord, SLRECSIZE) )
 	{
-	  while ( sendrecord ((char *) &slpack->msrecord, SLRECSIZE) )
+	  if ( verbose )
+	    sl_log (2, 0, "Re-connecting to DataLink server\n");
+	  
+	  /* Re-connect to DataLink server and sleep if error connecting */
+	  if ( dlconn->link != -1 )
+	    dl_disconnect (dlconn);
+	  
+	  if ( dl_connect (dlconn) < 0 )
 	    {
-	      if ( verbose )
-		sl_log (2, 0, "Re-connecting to DataLink server\n");
-	      
-	      /* Re-connect to DataLink server and sleep if error connecting */
-	      if ( dlconn->link != -1 )
-		dl_disconnect (dlconn);
-	      
-	      if ( dl_connect (dlconn) < 0 )
-		{
-		  sl_log (2, 0, "Error re-connecting to DataLink server, sleeping 10 seconds\n");
-		  sleep (10);
-		}
-	      
-	      if ( slconn->terminate )
-		break;
+	      sl_log (2, 0, "Error re-connecting to DataLink server, sleeping 10 seconds\n");
+	      sleep (10);
 	    }
 	  
-	  packetcnt++;
+	  if ( slconn->terminate )
+	    break;
 	}
+      
+      packetcnt++;
       
       /* Save intermediate state files */
       if ( statefile && stateint )
