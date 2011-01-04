@@ -1,4 +1,7 @@
-2010.227. 0.3
+2011.003: 0.4
+	- Update libdali to 1.3.
+
+2010.227: 0.3
 	- Pass all SeedLink packet types to DataLink server except INFO and KEEP.
 
 2010.171: 0.2
