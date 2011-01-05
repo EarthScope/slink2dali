@@ -22,7 +22,7 @@
 #include <libmseed.h>
 
 #define PACKAGE   "slink2dali"
-#define VERSION   "0.4"
+#define VERSION   "0.5"
 
 static int  sendrecord (char *record, int reclen);
 static int  parameter_proc (int argcount, char **argvec);

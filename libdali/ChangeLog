@@ -1,3 +1,7 @@
+2011.004: 1.4
+	- Correct return code for dl_position() for errors.
+	- Increase verbosity level for debugging message in dl_write().
+
 2011.003: 1.3
 	- Add support to dl_position() to set read position to earliest
 	or latest packet, thanks to Doug Neuhauser for the patch.

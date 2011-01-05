@@ -5,7 +5,7 @@
  *
  * @author Chad Trabant, IRIS Data Management Center
  *
- * modified: 2011.003
+ * modified: 2011.005
  ***************************************************************************/
 
 #include <stdlib.h>
@@ -295,7 +295,7 @@ dl_position (DLCP *dlconn, int64_t pktid, dltime_t pkttime)
   if ( rv >= 0 )
     dl_log_r (dlconn, 1, 1, "[%s] %s\n", dlconn->addr, reply);
   
-  return ( rv < 0 ) ? -1 : replyvalue;
+  return ( rv < 0 || replyvalue <= 0 ) ? -1 : replyvalue;
 }  /* End of dl_position() */
 
 
@@ -543,13 +543,13 @@ dl_write (DLCP *dlconn, void *packet, int packetlen, char *streamid,
   if ( ! dlconn || ! packet || ! streamid )
     {
       dl_log_r (dlconn, 1, 1, "dl_write(): dlconn || packet || streamid is not anticipated value \n");
-    return -1;
+      return -1;
     }
   
   if ( dlconn->link < 0 )
     {
-      dl_log_r (dlconn, 1, 1, "[%s] dl_write(): dlconn->link = %d, expect >=0 \n", dlconn->addr, dlconn->link);
-    return -1;
+      dl_log_r (dlconn, 1, 3, "[%s] dl_write(): dlconn->link = %d, expect >=0 \n", dlconn->addr, dlconn->link);
+      return -1;
     }
   
   /* Sanity check that connection is not in streaming mode */
