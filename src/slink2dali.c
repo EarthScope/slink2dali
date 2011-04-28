@@ -8,7 +8,7 @@
  * Written by Chad Trabant
  *   IRIS Data Management Center
  *
- * modified 2010.227
+ * modified 2011.117
  ***************************************************************************/
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 #include <libmseed.h>
 
 #define PACKAGE   "slink2dali"
-#define VERSION   "0.5"
+#define VERSION   "0.6"
 
 static int  sendrecord (char *record, int reclen);
 static int  parameter_proc (int argcount, char **argvec);
@@ -36,7 +36,8 @@ static short int verbose  = 0;   /* Flag to control general verbosity */
 static int stateint       = 0;   /* Packet interval to save statefile */
 static char *netcode      = 0;	 /* Change all SEED newtork codes to netcode */
 static char *statefile    = 0;	 /* State file for saving/restoring stream states */
-static int   writeack     = 0;   /* Flag to control the request for write acks */
+static int  writeack      = 0;   /* Flag to control the request for write acks */
+static int  dialup        = 0;   /* Flag to control SeedLink dialup mode */
 
 static SLCD *slconn;
 static DLCP *dlconn;
@@ -58,7 +59,7 @@ main (int argc, char **argv)
   /* Signal handling, use POSIX calls with standardized semantics */
   struct sigaction sa;
 
-  sa.sa_flags   = SA_RESTART;
+  sa.sa_flags = SA_RESTART;
   sigemptyset (&sa.sa_mask);
 
   sa.sa_handler = term_handler;
@@ -94,9 +95,9 @@ main (int argc, char **argv)
       if ( verbose > 1 )
 	{
 	  if ( ptype == SLKEEP )
-	    sl_log (2, 0, "Keep alive packet received\n");
+	    sl_log (1, 0, "Keep alive packet received\n");
 	  else
-	    sl_log (2, 0, "Received %s packet, SeedLink sequence %d\n",
+	    sl_log (1, 0, "Received %s packet, SeedLink sequence %d\n",
 		    type[ptype], seqnum);
 	}
       
@@ -106,7 +107,7 @@ main (int argc, char **argv)
 	  while ( sendrecord ((char *) &slpack->msrecord, SLRECSIZE) )
 	    {
 	      if ( verbose )
-		sl_log (2, 0, "Re-connecting to DataLink server\n");
+		sl_log (1, 0, "Re-connecting to DataLink server\n");
 	      
 	      /* Re-connect to DataLink server and sleep if error connecting */
 	      if ( dlconn->link != -1 )
@@ -211,7 +212,7 @@ parameter_proc (int argcount, char **argvec)
   char *sladdress = 0;
   char *dladdress = 0;
   int error = 0;
-
+  
   char *streamfile  = 0;   /* stream list file for configuring streams */
   char *multiselect = 0;
   char *selectors   = 0;
@@ -251,6 +252,10 @@ parameter_proc (int argcount, char **argvec)
       else if (strcmp (argvec[optind], "-S") == 0)
 	{
 	  multiselect = getoptval(argcount, argvec, optind++);
+	}
+      else if (strcmp (argvec[optind], "-d") == 0)
+	{
+	  dialup = 1;
 	}
       else if (strcmp (argvec[optind], "-N") == 0)
 	{
@@ -314,6 +319,9 @@ parameter_proc (int argcount, char **argvec)
   slconn->sladdr = sladdress;
   slconn->keepalive = 300;
   
+  if ( dialup )
+    slconn->dialup = 1;
+  
   /* Allocate and initialize DataLink connection description */
   if ( ! (dlconn = dl_newdlcp (dladdress, argvec[0])) )
     {
@@ -332,7 +340,7 @@ parameter_proc (int argcount, char **argvec)
 
   /* Report the program version */
   sl_log (1, 0, "%s version: %s\n", PACKAGE, VERSION);
-
+  
   /* If errors then report the usage message and quit */
   if ( error )
     {
@@ -516,6 +524,7 @@ usage (void)
 	   " -V              Report program version\n"
 	   " -h              Print this usage message\n"
 	   " -v              Be more verbose, multiple flags can be used\n"
+	   " -d              Configure SeedLink connection in dial-up mode\n"
 	   " -N netcode      Change all SEED network codes to specified code\n"
 	   " -x sfile[:int]  Save/restore stream state information to this file\n"
 	   "\n"
