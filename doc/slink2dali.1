@@ -1,4 +1,4 @@
-.TH SLINK2DALI 1 2011/01/04
+.TH SLINK2DALI 1 2011/04/27
 .SH NAME
 slink2dali \- SeedLink to DataLink
 
@@ -27,7 +27,14 @@ Print program usage and exit.
 Be more verbose.  This flag can be used multiple times ("-v -v" or
 "-vv") for more verbosity.
 
-.IP "-N \fI\netcode\fR"
+.IP "-d         "
+Configure the SeedLink connection in "dial-up" mode.  The remote
+server will close the connection when it has sent all of the data in
+it's buffers for the selected data streams.  This program will then
+exit cleanly and save the connection state if a state file has been
+specified.
+
+.IP "-N \fInetcode\fR"
 Change the SEED network code to \fInetcode\fR in all records
 forwarded.
 
