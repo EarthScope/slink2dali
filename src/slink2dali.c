@@ -8,7 +8,7 @@
  * Written by Chad Trabant
  *   IRIS Data Management Center
  *
- * modified 2011.117
+ * modified 2012.310
  ***************************************************************************/
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 #include <libmseed.h>
 
 #define PACKAGE   "slink2dali"
-#define VERSION   "0.6"
+#define VERSION   "0.7"
 
 static int  sendrecord (char *record, int reclen);
 static int  parameter_proc (int argcount, char **argvec);
@@ -101,8 +101,8 @@ main (int argc, char **argv)
 		    type[ptype], seqnum);
 	}
       
-      /* Send record to the DataLink server if not INFO or keep alive */
-      if ( ptype >= SLDATA && ptype < SLINF )
+      /* Send record to the DataLink server if not internal types, INFO or keep alive */
+      if ( ptype >= SLDATA && ptype < SLNUM )
 	{
 	  while ( sendrecord ((char *) &slpack->msrecord, SLRECSIZE) )
 	    {
@@ -125,7 +125,7 @@ main (int argc, char **argv)
 	  
 	  packetcnt++;
 	}
-
+      
       /* Save intermediate state files */
       if ( statefile && stateint )
 	{

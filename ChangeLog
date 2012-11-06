@@ -1,3 +1,7 @@
+2012.310: 0.7
+	- Do not forward SL packet types of SLNUM and SLCHA (value 6),
+	these internal request packet types can cause problems downstream.
+
 2011.117: 0.6
 	- Update libmseed to 2.6.
 	- Add -d option to configure SeedLink connection in dial-up mode.
