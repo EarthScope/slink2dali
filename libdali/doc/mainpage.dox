@@ -3,9 +3,9 @@
 @section Purpose
 
 The purpose of this library is to provide all needed functionality for
-communicating with a DataLink server in a generalized way.  This library
-facilitates rapid DataLink client development as the client does not
-need to know any details of the DataLink protocol.  The library is
+communicating via the @subpage datalink-protocol in a generalized way.
+This library facilitates rapid DataLink client development as the client
+does not need to know any details of the DataLink protocol.  The library is
 written in C.
 
 @section usage The DataLink Connection Parameters
@@ -40,8 +40,8 @@ each parameter:
   } DLCP;
 \endcode
 
-@param sladdr The address of the DataLink server to connect to in 
-		'host:port' format.  example: "st27.gfz-potsdam.de:18000".
+@param addr The address of the DataLink server to connect to in 
+		'host:port' format.  example: "localhost:16000".
 		The host or port specifications are both optional, they
 		will default to 'localhost' and '16000' respectively.
 
@@ -210,10 +210,13 @@ disable the libdali timeout (set DLCP.iotimeout = 0) and implement
 another timeout mechanism if desired.  The library is definitely not
 thread-safe under Win32.
 
-
 @section example Programming example
 
-See the example DataLink client included with the library in the
-"example" directory.
+See the @subpage page-examples for a DataLink client included with the
+library (in the "example" directory) that illustrates a simple client.
+
+@section protocol DataLink protocol
+
+Reference for the @subpage datalink-protocol.
 
 */
