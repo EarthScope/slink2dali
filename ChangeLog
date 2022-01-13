@@ -1,3 +1,6 @@
+2022.013: 0.8RC
+	- Update libmseed to 2.19.6
+
 2012.310: 0.7
 	- Do not forward SL packet types of SLNUM and SLCHA (value 6),
 	these internal request packet types can cause problems downstream.
