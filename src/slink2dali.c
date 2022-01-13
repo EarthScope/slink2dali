@@ -22,7 +22,7 @@
 #include <libslink.h>
 
 #define PACKAGE "slink2dali"
-#define VERSION "0.7"
+#define VERSION "0.8"
 
 static int sendrecord (char *record, int reclen);
 static int parameter_proc (int argcount, char **argvec);
@@ -32,12 +32,15 @@ static void print_timelogc (const char *msg);
 static void print_timelog (char *msg);
 static void usage (void);
 
-static short int verbose = 0; /* Flag to control general verbosity */
-static int stateint      = 0; /* Packet interval to save statefile */
-static char *netcode     = 0; /* Change all SEED newtork codes to netcode */
-static char *statefile   = 0; /* State file for saving/restoring stream states */
-static int writeack      = 0; /* Flag to control the request for write acks */
-static int dialup        = 0; /* Flag to control SeedLink dialup mode */
+static short int verbose = 0;   /* Flag to control general verbosity */
+static int stateint      = 0;   /* Packet interval to save statefile */
+static char *netcode     = 0;   /* Change all SEED newtork codes to netcode */
+static char *statefile   = 0;   /* State file for saving/restoring stream states */
+static int writeack      = 0;   /* Flag to control the request for write acks */
+static int dialup        = 0;   /* Flag to control SeedLink dialup mode */
+static int keepalive     = 300; /* Interval to send keepalive/heartbeat (secs) */
+static int netto         = 600; /* Network timeout (secs) */
+static int netdly        = 30;  /* Network reconnect delay (secs) */
 
 static SLCD *slconn;
 static DLCP *dlconn;
@@ -266,6 +269,18 @@ parameter_proc (int argcount, char **argvec)
     {
       timewin = getoptval (argcount, argvec, optind++);
     }
+    else if (strcmp (argvec[optind], "-nt") == 0)
+    {
+      netto = atoi (getoptval (argcount, argvec, optind++));
+    }
+    else if (strcmp (argvec[optind], "-nd") == 0)
+    {
+      netdly = atoi (getoptval (argcount, argvec, optind++));
+    }
+    else if (strcmp (argvec[optind], "-k") == 0)
+    {
+      keepalive = atoi (getoptval (argcount, argvec, optind++));
+    }
     else if (strncmp (argvec[optind], "-", 1) == 0)
     {
       fprintf (stderr, "Unknown option: %s\n", argvec[optind]);
@@ -314,7 +329,9 @@ parameter_proc (int argcount, char **argvec)
   }
 
   slconn->sladdr    = sladdress;
-  slconn->keepalive = 300;
+  slconn->netto     = netto;
+  slconn->netdly    = netdly;
+  slconn->keepalive = keepalive;
 
   if (dialup)
     slconn->dialup = 1;
@@ -517,6 +534,10 @@ usage (void)
            " -h              Print this usage message\n"
            " -v              Be more verbose, multiple flags can be used\n"
            " -d              Configure SeedLink connection in dial-up mode\n"
+           " -nd delay       network re-connect delay (seconds), default 30\n"
+           " -nt timeout     network timeout (seconds), re-establish connection if no\n"
+           "                   data/keepalives are received in this time, default 600\n"
+           " -k interval     send keepalive (heartbeat) packets this often (seconds)\n"
            " -N netcode      Change all SEED network codes to specified code\n"
            " -x sfile[:int]  Save/restore stream state information to this file\n"
            "\n"

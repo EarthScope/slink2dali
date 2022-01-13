@@ -1,4 +1,6 @@
 2022.013: 0.8RC
+	- Add -nt, -nd, -k options to control network timeout, network
+	re-connection delay and keep-alive intervals.
 	- Update libmseed to 2.19.6
 	- Update libslink to 2.6
 	- Update libdali to 1.8
