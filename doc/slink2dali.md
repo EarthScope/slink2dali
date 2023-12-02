@@ -133,7 +133,7 @@ II *    BHZ
 
 <pre >
 Chad Trabant
-IRIS Data Management Center
+EarthScope Data Services
 </pre>
 
 
